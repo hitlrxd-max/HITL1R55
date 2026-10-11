@@ -1,0 +1,4 @@
+import { DashboardShell, DashboardCard, EmptyState, PageHeading } from '@/components/dashboard-shell'
+import { db } from '@/lib/db'
+import { schoolStructure } from '@/lib/db/schema'
+export default async function SettingsPage() { const years = await db.select({ year: schoolStructure.academicYear }).from(schoolStructure); const uniqueYears = [...new Set(years.map(item => item.year))]; return <DashboardShell><PageHeading eyebrow="إدارة المرجع" title="إعدادات السنوات الدراسية" description="راجع السنوات الدراسية المستخدمة في هيكل المدرسة." /><DashboardCard title={`السنوات المتاحة (${uniqueYears.length})`}>{uniqueYears.length === 0 ? <EmptyState>لا توجد سنوات دراسية في قاعدة البيانات.</EmptyState> : <div className="flex flex-wrap gap-3">{uniqueYears.map(year => <div key={year} className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 font-semibold">{year}</div>)}</div>}</DashboardCard></DashboardShell> }
