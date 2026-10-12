@@ -1,5 +1,30 @@
-import { eq } from 'drizzle-orm'
-import { DashboardCard, DashboardShell, EmptyState, PageHeading } from '@/components/dashboard-shell'
+import { asc } from 'drizzle-orm'
+import { DashboardShell, PageHeading } from '@/components/dashboard-shell'
 import { db } from '@/lib/db'
 import { schoolStructure, students } from '@/lib/db/schema'
-export default async function StudentsPage() { const rows = await db.select({ id: students.id, name: students.fullName, father: students.fatherName, grade: schoolStructure.grade, className: schoolStructure.className, records: students.attendanceRecords }).from(students).leftJoin(schoolStructure, eq(students.schoolStructureId, schoolStructure.id)).limit(100); return <DashboardShell><PageHeading eyebrow="دليل الطلاب" title="الطلاب" description="قائمة الطلاب المرتبطين بالصفوف والفصول في قاعدة البيانات." action={<a href="/attendance" className="rounded-xl bg-[#16806d] px-4 py-3 text-sm font-bold text-white">تسجيل حضور</a>} /><DashboardCard title={`الطلاب المسجلون (${rows.length})`}>{rows.length === 0 ? <EmptyState>لا توجد سجلات طلاب في قاعدة البيانات.</EmptyState> : <div className="overflow-x-auto"><table className="w-full text-right text-sm"><thead><tr className="border-b text-slate-500"><th className="pb-3">الاسم الكامل</th><th className="pb-3">اسم الأب</th><th className="pb-3">الصف</th><th className="pb-3">الفصل</th><th className="pb-3">السجلات</th></tr></thead><tbody>{rows.map(row => <tr key={row.id} className="border-b last:border-0"><td className="py-4 font-semibold">{row.name}</td><td className="py-4">{row.father}</td><td className="py-4">{row.grade ?? '—'}</td><td className="py-4">{row.className ?? '—'}</td><td className="py-4">{Array.isArray(row.records) ? row.records.length : 0}</td></tr>)}</tbody></table></div>}</DashboardCard></DashboardShell> }
+import { StudentsManager } from './students-manager'
+
+export default async function StudentsPage() {
+  const [studentRows, structures] = await Promise.all([
+    db.select().from(students).orderBy(asc(students.fullName)).limit(1000),
+    db.select().from(schoolStructure).orderBy(asc(schoolStructure.academicYear), asc(schoolStructure.grade), asc(schoolStructure.className)),
+  ])
+
+  const joinedStudents = studentRows.map((student) => {
+    const structure = structures.find((item) => item.id === student.schoolStructureId)
+    return { ...student, grade: structure?.grade ?? null, className: structure?.className ?? null }
+  })
+
+  return (
+    <DashboardShell>
+      <PageHeading
+        eyebrow="دليل الطلاب"
+        title="إدارة الطلاب"
+        description="إضافة وتعديل وبحث ومراجعة بيانات الطلاب وسجلات حضورهم من قاعدة Neon الفعلية."
+        action={<a href="/attendance" className="rounded-xl bg-[#16806d] px-4 py-3 text-sm font-bold text-white">تسجيل حضور</a>}
+      />
+      <StudentsManager initialStudents={joinedStudents} structures={structures} />
+    </DashboardShell>
+  )
+}
+

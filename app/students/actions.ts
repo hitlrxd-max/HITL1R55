@@ -45,7 +45,7 @@ export async function deleteStudent(id: string) {
   const [student] = await db.select({ id: students.id, attendanceRecords: students.attendanceRecords }).from(students).where(eq(students.id, studentId)).limit(1)
   if (!student) throw new Error('الطالب غير موجود')
   if (student.attendanceRecords.length > 0) throw new Error('لا يمكن حذف طالب لديه سجل حضور أو غياب. احفظ السجل ولا تحذفه بالخطأ.')
-  await db.delete(students).where(and(eq(students.id, studentId), eq(students.attendanceRecords, [])))
+  await db.delete(students).where(and(eq(students.id, studentId), eq(students.attendanceRecords, [] as never)))
   revalidatePath('/students')
   return { ok: true }
 }
@@ -55,4 +55,4 @@ export async function getStudent(id: string) {
   const [student] = await db.select().from(students).where(eq(students.id, studentId)).limit(1)
   return student ?? null
 }
-'}},{
+
