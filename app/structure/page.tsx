@@ -1,4 +1,10 @@
-import { DashboardCard, DashboardShell, EmptyState, PageHeading } from '@/components/dashboard-shell'
-import { db } from '@/lib/db'
-import { schoolStructure } from '@/lib/db/schema'
-export default async function StructurePage() { const rows = await db.select().from(schoolStructure).limit(100); return <DashboardShell><PageHeading eyebrow="تنظيم المدرسة" title="الصفوف والفصول" description="الهيكل المرجعي الذي ترتبط به ملفات الطلاب والتقارير." /><DashboardCard title={`الهيكل الحالي (${rows.length})`}>{rows.length === 0 ? <EmptyState>لا توجد سنوات أو صفوف أو فصول معرفة.</EmptyState> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{rows.map(row => <article key={row.id} className="rounded-xl border border-slate-200 p-4"><p className="text-xs text-slate-500">السنة الدراسية</p><p className="mt-2 font-bold">{row.academicYear}</p><p className="mt-3 text-sm text-[#16806d]">{row.grade}</p><p className="mt-1 text-sm text-slate-500">{row.className}</p></article>)}</div>}</DashboardCard></DashboardShell> }
+import { DashboardShell, PageHeading } from '@/components/dashboard-shell'
+import { getStructure } from './actions'
+import { StructureManager } from './structure-manager'
+
+export const dynamic = 'force-dynamic'
+
+export default async function StructurePage() {
+  const rows = await getStructure()
+  return <DashboardShell><PageHeading eyebrow="تنظيم المدرسة" title="الصفوف والفصول" description="إدارة السنوات الدراسية والصفوف والفصول المرتبطة مباشرة بملفات الطلاب." /><StructureManager initialRows={rows.map((row) => ({ ...row, studentCount: Number(row.studentCount) }))} /></DashboardShell>
+}
