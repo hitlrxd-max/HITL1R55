@@ -31,6 +31,8 @@ export type AttendanceRecord = {
   date: string
   status: 'present' | 'absent' | 'late' | 'excused'
   note?: string
+  updatedAt?: string
+  recordedBy?: string | null
 }
 
 export type SchoolStructure = typeof schoolStructure.$inferSelect
